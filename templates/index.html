@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Smart Intruder Alert System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <h1 class="logo">🔒 A Smart Intruder Alert System</h1>
+    <nav>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#project-details">About</a>
+      <a href="#features">Features</a>
+      <a href="#future">Future Scope</a>
+    </nav>
+  </header>
+
+  <!-- Video Feed and Controls -->
+  <div class="container">
+    <div class="video-box">
+      <img src="{{ url_for('video_feed') }}" alt="Video Feed" />
+      <div class="video-status status-inactive">IDLE</div>
+    </div>
+    <div class="controls">
+      <form action="{{ url_for('start_detection') }}" method="get">
+        <button type="submit" class="start-btn">▶️ Start Detection</button>
+      </form>
+      <form action="{{ url_for('stop_detection') }}" method="get">
+        <button type="submit" class="stop-btn">⏹️ Stop Detection</button>
+      </form>
+      <form action="{{ url_for('terminate') }}" method="get">
+        <button type="submit" class="terminate-btn">⏏️ Terminate</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard Section -->
+  <section id="dashboard" class="dashboard">
+    <div class="dashboard-card">
+      <h3>Intruders Today</h3>
+      <p id="intruderCount">0</p>
+    </div>
+    <div class="dashboard-card">
+      <h3>Authorized Persons</h3>
+      <p id="authorizedCount">0</p>
+    </div>
+    <div class="dashboard-card">
+      <h3>Detection Accuracy</h3>
+      <p id="accuracyRate">0%</p>
+    </div>
+  </section>
+
+  <!-- Real-Time Intruder Graph -->
+  <section class="project-graph">
+    <h2>📊 Real-Time Intruder Detection</h2>
+    <canvas id="intruderChart"></canvas>
+  </section>
+
+  <!-- Historical Graph -->
+  <section class="historical-graph">
+    <h2>📈 Historical Intruder Data</h2>
+    <canvas id="historicalChart"></canvas>
+    <button id="resetButton" class="btn btn-danger">Reset Graph</button>
+  </section>
+
+  <!-- Project Details Section -->
+  <section id="project-details" class="project-details">
+    <h2>About the Project</h2>
+    <p>
+      The <strong>Smart Intruder Alert System</strong> is an advanced security solution designed to detect unauthorized intrusions in real-time. 
+      It leverages cutting-edge computer vision and machine learning technologies to ensure the safety of your premises.
+    </p>
+    <h3>How It Works</h3>
+    <p>
+      The system uses a live video feed to monitor the environment. It detects intruders using a pre-trained object detection model and triggers an alarm when an unauthorized person is detected.
+    </p>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="project-details">
+    <h2>Key Features</h2>
+    <ul>
+      <li>Real-time intruder detection with high accuracy.</li>
+      <li>Historical data visualization for better insights.</li>
+      <li>Interactive dashboard with live updates.</li>
+      <li>Customizable alarm system for immediate alerts.</li>
+      <li>Minimalist and user-friendly interface.</li>
+    </ul>
+  </section>
+
+  <!-- Future Scope Section -->
+  <section id="future" class="project-details">
+    <h2>Future Scope</h2>
+    <ul>
+      <li>Integration with IoT devices for enhanced automation.</li>
+      <li>Support for multiple camera feeds.</li>
+      <li>Advanced facial recognition for authorized personnel.</li>
+      <li>Cloud-based storage for historical data.</li>
+      <li>Mobile app for remote monitoring and control.</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2023 A Smart Intruder Alert System. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Initialize WebSocket connection
+    const socket = io();
+
+    // Real-time graph data
+    const ctx = document.getElementById('intruderChart').getContext('2d');
+    const intruderChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Intruders Detected',
+          data: [],
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderWidth: 2,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Detections'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Listen for real-time detection events
+    socket.on('person_detected', (data) => {
+      const timestamp = new Date(data.timestamp).toLocaleTimeString();
+      intruderChart.data.labels.push(timestamp);
+      intruderChart.data.datasets[0].data.push(data.intruders);
+      intruderChart.update();
+
+      // Update dashboard counters
+      document.getElementById('intruderCount').textContent = data.intruders;
+      document.getElementById('authorizedCount').textContent = data.authorized;
+      document.getElementById('accuracyRate').textContent = data.accuracy + '%';
+    });
+
+    // Historical graph data
+    const historicalCtx = document.getElementById('historicalChart').getContext('2d');
+    const historicalChart = new Chart(historicalCtx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Intruders',
+          data: [],
+          backgroundColor: 'rgba(255, 99, 132, 0.6)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        }, {
+          label: 'Authorized',
+          data: [],
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Count'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Fetch historical data and update the graph
+    fetch('/history')
+      .then(response => response.json())
+      .then(data => {
+        const dates = data.map(entry => entry.date);
+        const intruders = data.map(entry => entry.intruders);
+        const authorized = data.map(entry => entry.authorized);
+
+        historicalChart.data.labels = dates;
+        historicalChart.data.datasets[0].data = intruders;
+        historicalChart.data.datasets[1].data = authorized;
+        historicalChart.update();
+      });
+
+    // Reset Button Logic
+    document.getElementById('resetButton').addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset the historical graph?')) {
+        fetch('/reset_history', { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              alert(data.message);
+              historicalChart.data.labels = [];
+              historicalChart.data.datasets[0].data = [];
+              historicalChart.data.datasets[1].data = [];
+              historicalChart.update();
+            } else {
+              alert('Failed to reset the graph.');
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    });
+  </script>
+</body>
+</html>
