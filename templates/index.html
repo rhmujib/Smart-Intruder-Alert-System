@@ -19,6 +19,7 @@
       <a href="#features">Features</a>
       <a href="#future">Future Scope</a>
     </nav>
+    <button id="darkModeToggle" class="dark-mode-btn">🌙</button>
   </header>
 
   <!-- Video Feed and Controls -->
@@ -234,6 +235,29 @@
             }
           })
           .catch(error => console.error('Error:', error));
+      }
+    });
+
+    // Dark mode toggle logic
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const body = document.body;
+
+    // Load saved preference
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode === 'enabled') {
+      body.classList.add('dark-mode');
+      darkModeToggle.textContent = '☀️';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      if (body.classList.contains('dark-mode')) {
+        body.classList.remove('dark-mode');
+        localStorage.setItem('darkMode', 'disabled');
+        darkModeToggle.textContent = '🌙';
+      } else {
+        body.classList.add('dark-mode');
+        localStorage.setItem('darkMode', 'enabled');
+        darkModeToggle.textContent = '☀️';
       }
     });
   </script>

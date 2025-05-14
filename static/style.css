@@ -296,3 +296,107 @@ p {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #444;
 }
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode header {
+  background-color: #1e1e1e;
+}
+
+body.dark-mode footer {
+  background-color: #1e1e1e;
+  color: #bbb;
+}
+
+body.dark-mode .dashboard-card {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode section {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode button {
+  background-color: #333;
+  color: #e0e0e0;
+}
+
+body.dark-mode button:hover {
+  background-color: #444;
+}
+
+/* Dark mode toggle button */
+.dark-mode-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.dark-mode-btn:hover {
+  transform: scale(1.2);
+}
+
+/* Enhanced Dark mode styles */
+body.dark-mode header h1 {
+  color: #e0e0e0;
+}
+
+body.dark-mode header nav a {
+  color: #bbb;
+}
+
+body.dark-mode header nav a:hover {
+  color: #61a070;
+}
+
+body.dark-mode footer a {
+  color: #61a070;
+}
+
+body.dark-mode footer a:hover {
+  color: #4e8a5e;
+}
+
+body.dark-mode .dashboard-card h3 {
+  color: #bbb;
+}
+
+body.dark-mode .dashboard-card p {
+  color: #e0e0e0;
+}
+
+body.dark-mode section h2 {
+  color: #e0e0e0;
+}
+
+body.dark-mode section p {
+  color: #bbb;
+}
+
+body.dark-mode section ul li {
+  color: #bbb;
+}
+
+body.dark-mode .video-box img {
+  border-color: #444;
+}
+
+body.dark-mode .video-status {
+  background-color: #333;
+  color: #e0e0e0;
+}
+
+body.dark-mode canvas {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #444;
+}
