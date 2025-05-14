@@ -254,6 +254,40 @@ canvas {
   height: 400px;
 }
 
+/* Adjusted styles for graphs */
+.project-graph, .historical-graph {
+  max-width: 1000px; /* Increase the width */
+  margin: 20px auto; /* Center the graphs */
+  padding: 20px; /* Add some padding inside the graph container */
+  background: #fff; /* Ensure background remains consistent */
+  border-radius: 12px; /* Keep the rounded corners */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visibility */
+}
+
+.project-graph canvas, .historical-graph canvas {
+  max-width: 100%; /* Ensure the canvas fits within the container */
+  height: 300px; /* Keep the height of the graphs */
+}
+
+/* Adjusted Reset Button */
+.historical-graph #resetButton {
+  display: block;
+  margin: 20px auto 0; /* Center the button and add space above it */
+  padding: 10px 20px; /* Adjust padding for better appearance */
+  font-size: 16px; /* Slightly larger font size */
+  border-radius: 8px; /* Rounded corners */
+  background-color: #dc3545; /* Keep the danger button color */
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.historical-graph #resetButton:hover {
+  background-color: #c82333; /* Darker red on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
 /* ===== New Section Styles ===== */
 section.project-details {
   padding: 40px 80px;
