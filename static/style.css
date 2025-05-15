@@ -254,14 +254,14 @@ canvas {
   height: 400px;
 }
 
-/* Adjusted styles for graphs */
+
 .project-graph, .historical-graph {
-  max-width: 1000px; /* Increase the width */
-  margin: 20px auto; /* Center the graphs */
-  padding: 20px; /* Add some padding inside the graph container */
-  background: #fff; /* Ensure background remains consistent */
-  border-radius: 12px; /* Keep the rounded corners */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visibility */
+  max-width: 1000px;
+  margin: 20px auto; 
+  padding: 20px; 
+  background: #fff; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .project-graph canvas, .historical-graph canvas {
