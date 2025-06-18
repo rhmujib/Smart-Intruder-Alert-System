@@ -20,6 +20,16 @@ ALARM_PATH = "alarm/alarm.mp3"
 AUTHORIZED_FACES_DIR = "authorized_faces"
 HISTORY_LOG_PATH = "history_log.json"
 
+# Paths for Dlib models
+DLIB_SHAPE_PREDICTOR_PATH = "models/dlib/shape_predictor_68_face_landmarks.dat"
+DLIB_FACE_RECOGNITION_MODEL_PATH = "models/dlib/dlib_face_recognition_resnet_model_v1.dat"
+
+# Initialize Dlib models
+import dlib
+face_detector = dlib.get_frontal_face_detector()
+shape_predictor = dlib.shape_predictor(DLIB_SHAPE_PREDICTOR_PATH)
+face_recognition_model = dlib.face_recognition_model_v1(DLIB_FACE_RECOGNITION_MODEL_PATH)
+
 # Create necessary folders and files
 if not os.path.exists("recordings"):
     os.makedirs("recordings")
@@ -40,6 +50,21 @@ for file in os.listdir(AUTHORIZED_FACES_DIR):
         img = cv2.resize(img, (200, 200))
         authorized_faces.append(img)
         authorized_names.append(os.path.splitext(file)[0])
+
+# Load and encode authorized faces
+authorized_encodings = []
+for file in os.listdir(AUTHORIZED_FACES_DIR):
+    if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+        img_path = os.path.join(AUTHORIZED_FACES_DIR, file)
+        img = cv2.imread(img_path)
+        if img is None:
+            continue
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_detector(gray_img)
+        if len(faces) == 1:  # Ensure only one face per image
+            shape = shape_predictor(gray_img, faces[0])
+            encoding = np.array(face_recognition_model.compute_face_descriptor(img, shape))
+            authorized_encodings.append((encoding, os.path.splitext(file)[0]))
 
 # Initialize pygame mixer for alarm
 pygame.mixer.init()
@@ -72,6 +97,25 @@ socketio = SocketIO(app)
 net = cv2.dnn.readNetFromCaffe(PROTO_PATH, MODEL_PATH)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)  # Use OpenCV backend
 net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)       # Use CPU for inference
+
+# Function to recognize faces
+def recognize_faces(frame):
+    global authorized_count
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_detector(gray_frame)
+    recognized_names = []
+    for face in faces:
+        shape = shape_predictor(gray_frame, face)
+        encoding = np.array(face_recognition_model.compute_face_descriptor(frame, shape))
+        matches = []
+        for auth_encoding, name in authorized_encodings:
+            distance = np.linalg.norm(auth_encoding - encoding)
+            if distance < 0.6:  # Threshold for face recognition
+                matches.append(name)
+        if matches:
+            recognized_names.append(matches[0])
+    authorized_count = len(recognized_names)
+    return recognized_names
 
 def gen_frames():
     global detection_timer_start, recording, out, alarm_playing, fps_time, frame_count, fps, detection_active, current_intruder_count, authorized_count, total_detections, last_detection_time
@@ -117,6 +161,9 @@ def gen_frames():
                         box = detections[0, 0, i, 3:7] * [frame.shape[1], frame.shape[0], frame.shape[1], frame.shape[0]]
                         boxes.append(box.astype("int"))
 
+            # Recognize faces in the frame
+            recognized_names = recognize_faces(frame)
+
             if current_intruder_count > 0:
                 total_detections += current_intruder_count  # Update total detections dynamically
 
@@ -128,7 +175,8 @@ def gen_frames():
                     'timestamp': datetime.datetime.now().isoformat(),
                     'intruders': current_intruder_count,
                     'authorized': authorized_count,
-                    'accuracy': detection_accuracy
+                    'accuracy': detection_accuracy,
+                    'recognized_names': recognized_names
                 })
 
                 # Save to history log only if a new detection occurs
@@ -140,7 +188,8 @@ def gen_frames():
                             "date": current_time_str,
                             "intruders": current_intruder_count,
                             "authorized": authorized_count,
-                            "accuracy": detection_accuracy
+                            "accuracy": detection_accuracy,
+                            "recognized_names": recognized_names
                         })
                         f.seek(0)
                         json.dump(history, f, indent=4)
